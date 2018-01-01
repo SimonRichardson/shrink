@@ -2,18 +2,25 @@ package shrink
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"testing/quick"
 )
 
+// MaxRetries is the amount of times we want to attempt to shrink the arguments
 var MaxRetries = 100
 
+// ErrNoShrinkValue declares if the shrinking process can not generate an
+// argument for the callable
 var ErrNoShrinkValue = fmt.Errorf("invalid shrink value")
 
 type shrinkable interface {
-	Dismantal() (reflect.Value, error)
+	// Dismantle a value from a concrete value to a reflection value
+	// If an error is thrown then we exit immediately
+	Dismantle() (reflect.Value, error)
 }
 
+// Shrink values for utilizing against checking values.
 func Shrink(fn interface{}, err error) error {
 	if chkErr, ok := err.(*quick.CheckError); ok {
 		// Shrink the in input that failed
@@ -69,46 +76,44 @@ func shrink(args []interface{}) ([]interface{}, error) {
 		case shrinkable:
 			// TODO:
 
+		case bool:
+			x = !r
+
 		case int:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
-			}
+			x = r / 2
 		case int8:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
-			}
+			x = r / 2
 		case int16:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
-			}
+			x = r / 2
 		case int32:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
-			}
+			x = r / 2
 		case int64:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
-			}
+			x = r / 2
 
 		case uint:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
-			}
+			x = r / 2
 		case uint8:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
-			}
+			x = r / 2
 		case uint16:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
-			}
+			x = r / 2
 		case uint32:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
-			}
+			x = r / 2
 		case uint64:
-			if x = r / 2; x == 0 {
-				return nil, ErrNoShrinkValue
+			x = r / 2
+
+		case float32:
+			z := r / 2
+			if z < 0 {
+				x = float32(math.Ceil(float64(z)))
+			} else {
+				x = float32(math.Floor(float64(z)))
+			}
+		case float64:
+			z := r / 2
+			if z < 0 {
+				x = math.Ceil(z)
+			} else {
+				x = math.Floor(z)
 			}
 		}
 
