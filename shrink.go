@@ -10,10 +10,6 @@ import (
 
 const maxRetries = 100
 
-// ErrNoShrinkValue declares if the shrinking process can not generate an
-// argument for the callable
-var ErrNoShrinkValue = fmt.Errorf("invalid shrink value")
-
 // A Shrinkable can shrink/reduce of its own type.
 type Shrinkable interface {
 	// Shrink a value from a concrete value to a reflection value
