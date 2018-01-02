@@ -6,6 +6,12 @@ import (
 	"testing/quick"
 )
 
+type IntAliasType int
+
+func (x IntAliasType) Shrink() (reflect.Value, error) {
+	return reflect.ValueOf(IntAliasType(x / 2)), nil
+}
+
 func TestShrink(t *testing.T) {
 	t.Parallel()
 
@@ -60,6 +66,34 @@ func TestShrink(t *testing.T) {
 			t.Errorf("expected: %v, actual: %v", expected, actual)
 		}
 		if expected, actual := []interface{}{7, "a"}, chkErr.Succeeded; !reflect.DeepEqual(expected, actual) {
+			t.Errorf("expected: %v, actual: %v", expected, actual)
+		}
+	})
+
+	t.Run("shrink with shrinkable arguments", func(t *testing.T) {
+		fn := func(a IntAliasType, b string) bool {
+			return a < 10
+		}
+		err := Shrink(fn, nil, &quick.CheckError{
+			Count: 1,
+			In: []interface{}{
+				IntAliasType(1000),
+				"asd",
+			},
+		})
+
+		chkErr, ok := err.(*CheckError)
+		if !ok {
+			t.Fatalf("unexpected CheckError, %v", err)
+		}
+
+		if expected, actual := 8, chkErr.Count; expected != actual {
+			t.Errorf("expected: %d, actual: %d", expected, actual)
+		}
+		if expected, actual := []interface{}{IntAliasType(1000), "asd"}, chkErr.In; !reflect.DeepEqual(expected, actual) {
+			t.Errorf("expected: %v, actual: %v", expected, actual)
+		}
+		if expected, actual := []interface{}{IntAliasType(7), "a"}, chkErr.Succeeded; !reflect.DeepEqual(expected, actual) {
 			t.Errorf("expected: %v, actual: %v", expected, actual)
 		}
 	})

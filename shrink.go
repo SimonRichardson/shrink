@@ -18,7 +18,7 @@ var ErrNoShrinkValue = fmt.Errorf("invalid shrink value")
 type Shrinkable interface {
 	// Shrink a value from a concrete value to a reflection value
 	// If an error is thrown then we exit immediately
-	Shrink(interface{}) (reflect.Value, error)
+	Shrink() (reflect.Value, error)
 }
 
 // A Config structure contains options for running a test.
@@ -137,12 +137,19 @@ func toString(interfaces []interface{}) string {
 
 func shrink(args []interface{}) ([]reflect.Value, error) {
 	res := make([]reflect.Value, len(args))
+
+Loop:
 	for k, v := range args {
 		var x interface{}
 
 		switch r := v.(type) {
 		case Shrinkable:
-			// TODO:
+			ref, err := r.Shrink()
+			if err != nil {
+				return nil, quick.SetupError(err.Error())
+			}
+			res[k] = ref
+			continue Loop
 
 		case bool:
 			x = !r
