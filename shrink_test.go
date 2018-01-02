@@ -1,34 +1,66 @@
 package shrink
 
-import "testing"
-import "testing/quick"
+import (
+	"reflect"
+	"testing"
+	"testing/quick"
+)
 
 func TestShrink(t *testing.T) {
 	t.Parallel()
 
 	t.Run("shrink with one argument", func(t *testing.T) {
 		fn := func(a int) bool {
-			b := a % 1000
-			return b < 500
+			return a < 10
 		}
-		if err := quick.Check(fn, nil); err != nil {
-			if e := Shrink(fn, err); e != nil {
-				err = e
-			}
-			t.Error(err)
+		err := Shrink(fn, nil, &quick.CheckError{
+			Count: 1,
+			In: []interface{}{
+				1000,
+			},
+		})
+
+		chkErr, ok := err.(*CheckError)
+		if !ok {
+			t.Fatalf("unexpected CheckError, %v", err)
+		}
+
+		if expected, actual := 8, chkErr.Count; expected != actual {
+			t.Errorf("expected: %d, actual: %d", expected, actual)
+		}
+		if expected, actual := 1000, chkErr.In[0]; expected != actual {
+			t.Errorf("expected: %d, actual: %d", expected, actual)
+		}
+		if expected, actual := 7, chkErr.Succeeded[0]; expected != actual {
+			t.Errorf("expected: %d, actual: %d", expected, actual)
 		}
 	})
 
-	t.Run("shrink with two arguments", func(t *testing.T) {
-		fn := func(a, c int) bool {
-			b := a % 1000
-			return b < 500
+	t.Run("shrink with multiple arguments", func(t *testing.T) {
+		fn := func(a int, b string) bool {
+			return a < 10
 		}
-		if err := quick.Check(fn, nil); err != nil {
-			if e := Shrink(fn, err); e != nil {
-				err = e
-			}
-			t.Error(err)
+		err := Shrink(fn, nil, &quick.CheckError{
+			Count: 1,
+			In: []interface{}{
+				1000,
+				"asd",
+			},
+		})
+
+		chkErr, ok := err.(*CheckError)
+		if !ok {
+			t.Fatalf("unexpected CheckError, %v", err)
+		}
+
+		if expected, actual := 8, chkErr.Count; expected != actual {
+			t.Errorf("expected: %d, actual: %d", expected, actual)
+		}
+		if expected, actual := []interface{}{1000, "asd"}, chkErr.In; !reflect.DeepEqual(expected, actual) {
+			t.Errorf("expected: %v, actual: %v", expected, actual)
+		}
+		if expected, actual := []interface{}{7, "a"}, chkErr.Succeeded; !reflect.DeepEqual(expected, actual) {
+			t.Errorf("expected: %v, actual: %v", expected, actual)
 		}
 	})
 }
