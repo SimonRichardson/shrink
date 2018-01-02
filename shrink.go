@@ -137,60 +137,63 @@ func toString(interfaces []interface{}) string {
 
 func shrink(args []interface{}) ([]reflect.Value, error) {
 	res := make([]reflect.Value, len(args))
-
-Loop:
 	for k, v := range args {
 		var x interface{}
 
-		switch r := v.(type) {
-		case Shrinkable:
-			ref, err := r.Shrink()
-			if err != nil {
-				return nil, quick.SetupError(err.Error())
+		if s, ok := v.(Shrinkable); ok {
+			var err error
+			if res[k], err = s.Shrink(); err != nil {
+				return nil, err
 			}
-			res[k] = ref
-			continue Loop
+			continue
+		}
 
-		case bool:
-			x = !r
+		switch concrete := reflect.TypeOf(v); concrete.Kind() {
+		case reflect.Bool:
+			x = !v.(bool)
 
-		case int:
-			x = r / 2
-		case int8:
-			x = r / 2
-		case int16:
-			x = r / 2
-		case int32:
-			x = r / 2
-		case int64:
-			x = r / 2
+		case reflect.Int:
+			x = v.(int) / 2
+		case reflect.Int8:
+			x = v.(int8) / 2
+		case reflect.Int16:
+			x = v.(int16) / 2
+		case reflect.Int32:
+			x = v.(int32) / 2
+		case reflect.Int64:
+			x = v.(int64) / 2
 
-		case uint:
-			x = r / 2
-		case uint8:
-			x = r / 2
-		case uint16:
-			x = r / 2
-		case uint32:
-			x = r / 2
-		case uint64:
-			x = r / 2
+		case reflect.Uint:
+			x = v.(uint) / 2
+		case reflect.Uint8:
+			x = v.(uint8) / 2
+		case reflect.Uint16:
+			x = v.(uint16) / 2
+		case reflect.Uint32:
+			x = v.(uint32) / 2
+		case reflect.Uint64:
+			x = v.(uint64) / 2
 
-		case float32:
-			if n := r / 2; n < 0 {
+		case reflect.Float32:
+			if n := v.(float32) / 2; n < 0 {
 				x = float32(math.Ceil(float64(n)))
 			} else {
 				x = float32(math.Floor(float64(n)))
 			}
-		case float64:
-			if n := r / 2; n < 0 {
+		case reflect.Float64:
+			if n := v.(float64) / 2; n < 0 {
 				x = math.Ceil(n)
 			} else {
 				x = math.Floor(n)
 			}
 
-		case string:
-			x = r[:(len(r)+1)/2]
+		case reflect.String:
+			r := v.(string)
+			x = r[:len(r)/2]
+
+		case reflect.Slice:
+			r := v.([]interface{})
+			x = r[:len(r)/2]
 
 		default:
 			return nil, quick.SetupError(fmt.Sprintf("cannot create shrink value of type %T for argument %d", v, k))

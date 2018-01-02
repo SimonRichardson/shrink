@@ -65,7 +65,7 @@ func TestShrink(t *testing.T) {
 		if expected, actual := []interface{}{1000, "asd"}, chkErr.In; !reflect.DeepEqual(expected, actual) {
 			t.Errorf("expected: %v, actual: %v", expected, actual)
 		}
-		if expected, actual := []interface{}{7, "a"}, chkErr.Succeeded; !reflect.DeepEqual(expected, actual) {
+		if expected, actual := []interface{}{7, ""}, chkErr.Succeeded; !reflect.DeepEqual(expected, actual) {
 			t.Errorf("expected: %v, actual: %v", expected, actual)
 		}
 	})
@@ -93,7 +93,7 @@ func TestShrink(t *testing.T) {
 		if expected, actual := []interface{}{IntAliasType(1000), "asd"}, chkErr.In; !reflect.DeepEqual(expected, actual) {
 			t.Errorf("expected: %v, actual: %v", expected, actual)
 		}
-		if expected, actual := []interface{}{IntAliasType(7), "a"}, chkErr.Succeeded; !reflect.DeepEqual(expected, actual) {
+		if expected, actual := []interface{}{IntAliasType(7), ""}, chkErr.Succeeded; !reflect.DeepEqual(expected, actual) {
 			t.Errorf("expected: %v, actual: %v", expected, actual)
 		}
 	})
